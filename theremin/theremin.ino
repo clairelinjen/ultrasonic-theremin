@@ -59,13 +59,12 @@ float avgRead(float val, float last, int index){
   for (int i=0; i<arraySize; i++){
     avg += lastPitches[i];
   }
-  if (abs(val - last) > 400){
-    lastPitches[pitchIndex] = avg/arraySize;
-    return last;
+  avg = avg/arraySize;
+  if (abs(val - last) > 200){
+    avg = (last+last+avg)/3;
+    lastPitches[pitchIndex] = avg;
   }
-  else{
-    return avg/arraySize;
-  }
+  return avg;
 }
 
 void updatePitch(float val)
