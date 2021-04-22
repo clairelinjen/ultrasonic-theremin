@@ -54,16 +54,14 @@ int increment(int i){
 }
 
 float avgRead(float val, float last, int index){
-  lastPitches[pitchIndex] = val;
+  lastPitches[index] = val;
   float avg = 0.0;
   for (int i=0; i<arraySize; i++){
     avg += lastPitches[i];
   }
   avg = avg/arraySize;
-  if (abs(val - last) > 200){
-    avg = (last+last+avg)/3;
-    lastPitches[pitchIndex] = avg;
-  }
+  avg = (last+last+avg)/3;
+  lastPitches[index] = avg;
   return avg;
 }
 
