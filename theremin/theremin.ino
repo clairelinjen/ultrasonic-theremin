@@ -60,7 +60,7 @@ float avgPitchRead(float val, float last, int index){
   }
   avg += val;
   avg = avg/(arraySize+1);
-  avg = (last+last+avg)/3;
+  avg = (last+avg)/2;
   lastPitches[index] = avg;
   return avg;
 }
@@ -206,6 +206,7 @@ bool isTimerReady(int mSec) {
 
 bool isPitch = true;
 void loop() {
+  delay(1);
   if (isPitch){
     /*Switch between the ultrasonic sensor states*/
   switch (_pitchSensorState) {
