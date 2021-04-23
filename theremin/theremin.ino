@@ -39,12 +39,12 @@ void audioTask(void *);
 float timeOut = MAX_DISTANCE * 60;
 int soundVelocity = 340; // define sound speed=340m/s
 
-int arraySize = 10;
+int arraySize = 9;
 float maxVal = 1046.5;
 float lastPitch = 0.0;
 float lastVol = 0.0;
-float lastPitches[10];
-float lastVols[10];
+float lastPitches[9];
+float lastVols[9];
 int pitchIndex = 0;
 int volIndex = 0;
 
@@ -53,14 +53,26 @@ int increment(int i){
   return i % arraySize;
 }
 
-float avgRead(float val, float last, int index){
-  lastPitches[index] = val;
+float avgPitchRead(float val, float last, int index){
   float avg = 0.0;
   for (int i=0; i<arraySize; i++){
     avg += lastPitches[i];
   }
-  avg = avg/arraySize;
+  avg += val;
+  avg = avg/(arraySize+1);
   avg = (last+last+avg)/3;
+  lastPitches[index] = avg;
+  return avg;
+}
+
+float avgVolRead(float val, float last, int index){
+  float avg = 0.0;
+  for (int i=0; i<arraySize; i++){
+    avg += lastVols[i];
+  }
+  avg += val;
+  avg = avg/(arraySize+1);
+  avg = (last+last+last+avg)/3;
   lastPitches[index] = avg;
   return avg;
 }
@@ -71,13 +83,13 @@ void updatePitch(float val)
   if (val > maxVal){
     val = maxVal;
   }
-  float newPitch = avgRead(val, lastPitch, pitchIndex);
+  float newPitch = avgPitchRead(val, lastPitch, pitchIndex);
   lastPitch = newPitch;
   synth.note(newPitch);
   pitchIndex = increment(pitchIndex);
 }
 
-void updateVol()
+void updateVol(float val)
 {
   
 }
@@ -181,7 +193,8 @@ enum SensorStates {
   ECHO_HIGH
 };
  
-SensorStates _sensorState = TRIG_LOW;
+SensorStates _pitchSensorState = TRIG_LOW;
+SensorStates _volSensorState = TRIG_LOW;
  
 void startTimer() {
   timeStart = millis();
@@ -194,13 +207,13 @@ bool isTimerReady(int mSec) {
  
 void loop() {
   /*Switch between the ultrasonic sensor states*/
-  switch (_sensorState) {
+  switch (_pitchSensorState) {
     /* Start with LOW pulse to ensure a clean HIGH pulse*/
     case TRIG_LOW: {
         digitalWrite(trigPitch, LOW);
         startTimer();
         if (isTimerReady(TIMER_LOW_HIGH)) {
-          _sensorState = TRIG_HIGH;
+          _pitchSensorState = TRIG_HIGH;
         }
       } break;
       
@@ -209,7 +222,7 @@ void loop() {
         digitalWrite(trigPitch, HIGH);
         startTimer();
         if (isTimerReady(TIMER_TRIGGER_HIGH)) {
-          _sensorState = ECHO_HIGH;
+          _pitchSensorState = ECHO_HIGH;
         }
       } break;
  
@@ -222,10 +235,47 @@ void loop() {
            speed of sound is 340 m/s => 0.034 cm/us
         */
         updatePitch(timeDuration);
+        Serial.print("pitch sensor ");
         Serial.println(timeDuration);
-        _sensorState = TRIG_LOW;
+        _pitchSensorState = TRIG_LOW;
       } break;
       
   }//end switch
+
+  switch (_volSensorState) {
+    /* Start with LOW pulse to ensure a clean HIGH pulse*/
+    case TRIG_LOW: {
+        digitalWrite(trigVol, LOW);
+        startTimer();
+        if (isTimerReady(TIMER_LOW_HIGH)) {
+          _volSensorState = TRIG_HIGH;
+        }
+      } break;
+      
+    /*Triggered a HIGH pulse of 10 microseconds*/
+    case TRIG_HIGH: {
+        digitalWrite(trigVol, HIGH);
+        startTimer();
+        if (isTimerReady(TIMER_TRIGGER_HIGH)) {
+          _volSensorState = ECHO_HIGH;
+        }
+      } break;
+ 
+    /*Measures the time that ping took to return to the receiver.*/
+    case ECHO_HIGH: {
+        digitalWrite(trigVol, LOW);
+        timeDuration = pulseIn(echoVol, HIGH);
+        /*
+           distance = time * speed of sound
+           speed of sound is 340 m/s => 0.034 cm/us
+        */
+        updateVol(timeDuration);
+        Serial.print("vol sensor ");
+        Serial.println(timeDuration);
+        _volSensorState = TRIG_LOW;
+      } break;
+      
+  }//end switch
+  
   
 }//end loop
