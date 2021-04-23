@@ -204,9 +204,10 @@ bool isTimerReady(int mSec) {
   return (millis() - timeStart) < mSec;
 }
 
- 
+bool isPitch = true;
 void loop() {
-  /*Switch between the ultrasonic sensor states*/
+  if (isPitch){
+    /*Switch between the ultrasonic sensor states*/
   switch (_pitchSensorState) {
     /* Start with LOW pulse to ensure a clean HIGH pulse*/
     case TRIG_LOW: {
@@ -235,14 +236,16 @@ void loop() {
            speed of sound is 340 m/s => 0.034 cm/us
         */
         updatePitch(timeDuration);
-        Serial.print("pitch sensor ");
-        Serial.println(timeDuration);
+        //Serial.print("pitch sensor ");
+        //Serial.println(timeDuration);
         _pitchSensorState = TRIG_LOW;
       } break;
       
   }//end switch
-
-  switch (_volSensorState) {
+    isPitch = false;
+  }
+  else{
+    switch (_volSensorState) {
     /* Start with LOW pulse to ensure a clean HIGH pulse*/
     case TRIG_LOW: {
         digitalWrite(trigVol, LOW);
@@ -270,12 +273,13 @@ void loop() {
            speed of sound is 340 m/s => 0.034 cm/us
         */
         updateVol(timeDuration);
-        Serial.print("vol sensor ");
-        Serial.println(timeDuration);
+        //Serial.print("vol sensor ");
+        //Serial.println(timeDuration);
         _volSensorState = TRIG_LOW;
       } break;
       
   }//end switch
-  
-  
+  isPitch = true;
+  }
+   
 }//end loop
