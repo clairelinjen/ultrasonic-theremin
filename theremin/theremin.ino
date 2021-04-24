@@ -89,7 +89,7 @@ void updatePitch(float val)
 
 void updateVol(int val)
 {
-  val = constrain(val, 0, 1600);
+  val = constrain(val, 300, 1600);
   int newVolRead = avgVolRead(val, lastVol, volIndex);
   lastVol = newVolRead;
   int newVol = map(newVolRead, 0, 1600, 0, 20);
@@ -213,7 +213,7 @@ bool isTimerReady(int mSec) {
 
 bool isPitch = true;
 void loop() {
-  delay(1);
+  delay(1.2);
   if (isPitch){
     /*Switch between the ultrasonic sensor states*/
   switch (_pitchSensorState) {
@@ -282,7 +282,6 @@ void loop() {
         */
         updateVol(timeDuration);
         //Serial.print("vol sensor ");
-        Serial.println((int) timeDuration);
         _volSensorState = TRIG_LOW;
       } break;
       
