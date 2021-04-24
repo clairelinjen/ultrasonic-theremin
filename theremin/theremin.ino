@@ -26,8 +26,8 @@ FilterNode hp;
 const int fs = 96000;
 const int channelCount = 2;
 
-static uint8_t volume = 10;
-const uint8_t volume_step = 2;
+static uint8_t volume = 0;
+const uint8_t volume_step = 1;
 
 void audioTask(void *);
 
@@ -39,12 +39,12 @@ void audioTask(void *);
 float timeOut = MAX_DISTANCE * 60;
 int soundVelocity = 340; // define sound speed=340m/s
 
-int arraySize = 9;
-float maxVal = 1046.5;
+int arraySize = 5;
+float maxFreq = 1046.5;
 float lastPitch = 0.0;
 float lastVol = 0.0;
-float lastPitches[9];
-float lastVols[9];
+float lastPitches[5];
+float lastVols[5];
 int pitchIndex = 0;
 int volIndex = 0;
 
@@ -60,38 +60,45 @@ float avgPitchRead(float val, float last, int index){
   }
   avg += val;
   avg = avg/(arraySize+1);
-  avg = (last+avg)/2;
+  avg = (last+last+avg)/3;
   lastPitches[index] = avg;
   return avg;
 }
 
-float avgVolRead(float val, float last, int index){
-  float avg = 0.0;
+float avgVolRead(int val, int last, int index){
+  int avg = 0;
   for (int i=0; i<arraySize; i++){
     avg += lastVols[i];
   }
   avg += val;
   avg = avg/(arraySize+1);
-  avg = (last+last+last+avg)/3;
-  lastPitches[index] = avg;
+  avg = (last+last+avg)/3;
+  lastVols[index] = avg;
   return avg;
 }
 
 void updatePitch(float val)
 {
   val = val/3;
-  if (val > maxVal){
-    val = maxVal;
-  }
+  val = constrain(val,0,maxFreq);
   float newPitch = avgPitchRead(val, lastPitch, pitchIndex);
   lastPitch = newPitch;
   synth.note(newPitch);
   pitchIndex = increment(pitchIndex);
 }
 
-void updateVol(float val)
+void updateVol(int val)
 {
-  
+  val = constrain(val, 0, 1600);
+  int newVolRead = avgVolRead(val, lastVol, volIndex);
+  lastVol = newVolRead;
+  int newVol = map(newVolRead, 0, 1600, 0, 20);
+  uint8_t v = newVol;
+  if (v != volume){
+    i2sCodec.SetVolumeSpeaker(v);
+    i2sCodec.SetVolumeHeadphone(v);
+  }
+  volIndex = increment(volIndex);  
 }
 
 
@@ -147,7 +154,7 @@ void setup()
 
   for (int i=0; i<arraySize; i++){
     lastPitches[i] = 0.0;
-    lastVols[i] = 0.0;
+    lastVols[i] = 0;
   }
 
 }
@@ -275,7 +282,7 @@ void loop() {
         */
         updateVol(timeDuration);
         //Serial.print("vol sensor ");
-        //Serial.println(timeDuration);
+        Serial.println((int) timeDuration);
         _volSensorState = TRIG_LOW;
       } break;
       
