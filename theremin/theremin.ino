@@ -215,7 +215,7 @@ bool isTimerReady(int mSec) {
 
 bool isPitch = true;
 void loop() {
-  delay(1.5);
+  delay(1);
   if (isPitch){
     /*Switch between the ultrasonic sensor states*/
   switch (_pitchSensorState) {
