@@ -92,7 +92,9 @@ void updateVol(int val)
   val = constrain(val, 300, 1600);
   int newVolRead = avgVolRead(val, lastVol, volIndex);
   lastVol = newVolRead;
-  int newVol = map(newVolRead, 0, 1600, 0, 20);
+  int newVol = map(newVolRead, 0, 1600, 0, 24);
+  newVol -= 4;
+  newVol = constrain(newVol,0,20);
   uint8_t v = newVol;
   if (v != volume){
     i2sCodec.SetVolumeSpeaker(v);
@@ -213,7 +215,7 @@ bool isTimerReady(int mSec) {
 
 bool isPitch = true;
 void loop() {
-  delay(1.2);
+  delay(1.5);
   if (isPitch){
     /*Switch between the ultrasonic sensor states*/
   switch (_pitchSensorState) {
@@ -280,7 +282,7 @@ void loop() {
            distance = time * speed of sound
            speed of sound is 340 m/s => 0.034 cm/us
         */
-        updateVol(timeDuration);
+        updateVol((int)timeDuration);
         //Serial.print("vol sensor ");
         _volSensorState = TRIG_LOW;
       } break;
